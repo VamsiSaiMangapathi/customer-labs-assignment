@@ -1,3 +1,5 @@
 # customer-labs-assignment
 
-To start Application run npm start
+You can run this application by using below command
+
+# npm start
