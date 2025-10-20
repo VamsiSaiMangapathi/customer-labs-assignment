@@ -8,7 +8,7 @@ const SegmentBuilder = (props) => {
   const { onClose } = props;
   const [traitType, setTraitType] = useState("user");
   const [newSchema, setNewSchema] = useState([
-    { id: Date.now(), value: "first_name", traits: "" },
+    { id: Date.now(), value: "", traits: "" },
   ]);
   const [segmentName, setSegmentName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -40,7 +40,7 @@ const SegmentBuilder = (props) => {
         ...newSchema,
         {
           id: Date.now(),
-          value: availableOptions[0].value,
+          value: "",
           traits: "",
         },
       ]);
@@ -61,9 +61,25 @@ const SegmentBuilder = (props) => {
       .filter((schema) => schema.id !== currentSchemaId && schema.value)
       .map((schema) => schema.value);
 
-    return schemaOptions.filter(
+    const availableOptions = schemaOptions.filter(
       (option) => !selectedValues.includes(option.value)
     );
+    const currentSchema = newSchema.find(
+      (schema) => schema.id === currentSchemaId
+    );
+    if (currentSchema && currentSchema.value) {
+      const currentOption = schemaOptions.find(
+        (opt) => opt.value === currentSchema.value
+      );
+      if (
+        currentOption &&
+        !availableOptions.find((opt) => opt.value === currentOption.value)
+      ) {
+        availableOptions.unshift(currentOption);
+      }
+    }
+
+    return availableOptions;
   };
 
   const handleSchemaChange = (schemaId, selectedValue) => {
@@ -178,7 +194,7 @@ const SegmentBuilder = (props) => {
                   placeholder="Name of the segment"
                   value={segmentName}
                   onChange={(e) => setSegmentName(e.target.value)}
-                  className="w-4/5 px-5 py-2 border border-gray-300 rounded"
+                  className="w-4/5 px-5 py-2 border border-gray-300 rounded focus:outline-none focus:border-[#0d939f] "
                 />
               </div>
 
@@ -213,6 +229,8 @@ const SegmentBuilder = (props) => {
               <div className="flex flex-col gap-5 mt-7">
                 {newSchema.map((schema) => {
                   const availableOptions = getAvailableOptions(schema.id);
+                  const hasSelectedValue = schema.value && schema.value !== "";
+
                   return (
                     <div className="flex gap-5 items-center" key={schema.id}>
                       <span
@@ -221,11 +239,17 @@ const SegmentBuilder = (props) => {
                         }`}
                       />
                       <select
+                        value={schema.value}
                         onChange={(e) =>
                           handleSchemaChange(schema?.id, e.target.value)
                         }
                         className="w-3/5 px-5 py-2 border border-gray-300 rounded"
                       >
+                        {!hasSelectedValue && (
+                          <option value="" disabled hidden>
+                            Add schema to segment
+                          </option>
+                        )}
                         {availableOptions.map((data) => (
                           <option key={data?.value} value={data?.value}>
                             {data?.label}
